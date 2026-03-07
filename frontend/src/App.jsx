@@ -457,9 +457,7 @@ export default function App() {
       <nav className="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView('home')}>
-            <div className="p-1.5 bg-emerald-600 rounded-lg text-white">
-              <Leaf size={20} />
-            </div>
+            <img src="/download.png" alt="Phytomonitor Logo" className="h-8 w-8 object-contain rounded-lg" />
             <span className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
               Phyto<span className="text-emerald-600">monitor</span>
             </span>
