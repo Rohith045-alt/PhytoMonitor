@@ -1,11 +1,11 @@
 
-# 🌿 Phyto – Plant Disease Detection System
+#  Phyto – Plant Disease Detection System
 
 Phyto is a full‑stack web application that detects plant diseases from leaf images using a deep learning model. Users upload a plant leaf image and receive the predicted disease along with a confidence score.
 
 ---
 
-## 🚀 Features
+##  Features
 
 - Upload plant leaf images
 - Detect plant diseases using a trained CNN model
@@ -15,7 +15,7 @@ Phyto is a full‑stack web application that detects plant diseases from leaf im
 
 ---
 
-## 🏗 Architecture
+##  Architecture
 
 Frontend → Backend API → ML Bridge → Python Model → Prediction → Frontend
 
@@ -28,7 +28,7 @@ Frontend → Backend API → ML Bridge → Python Model → Prediction → Front
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 phyto/
 │
@@ -52,7 +52,7 @@ phyto/
 
 ---
 
-## 🧰 Technologies Used
+## Technologies Used
 
 Frontend
 - React
@@ -74,7 +74,7 @@ Machine Learning
 
 ---
 
-## ⚙ Installation
+## Installation
 
 ### Clone repository
 
@@ -125,7 +125,7 @@ http://localhost:5173
 
 ---
 
-## 📡 API Endpoint
+## API Endpoint
 
 POST /api/v1/plants/analyze
 
@@ -147,7 +147,7 @@ Response Example:
 
 ---
 
-## ⚠ Common Issues
+## Common Issues
 
 Model loading error
 
@@ -159,9 +159,9 @@ The file must not be empty.
 
 ---
 
-## 👨‍💻 Author
+## Author
 
-Rohith William
+Rohith William G
 
 ---
 
