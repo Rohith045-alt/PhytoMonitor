@@ -1,0 +1,7 @@
+node_modules/
+__pycache__/
+*.h5
+*.env
+.env
+Plant_desease/
+.DS_Store
