@@ -165,10 +165,20 @@ export default function App() {
     const canvas = canvasRef.current;
     const video = videoRef.current;
     if (canvas && video) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvas.getContext('2d').drawImage(video, 0, 0);
-      const dataUrl = canvas.toDataURL('image/jpeg');
+      // Resize to avoid massive base64 strings crashing mobile
+      const maxDim = 800;
+      let width = video.videoWidth;
+      let height = video.videoHeight;
+      if (width > maxDim || height > maxDim) {
+        const ratio = width / height;
+        if (width > height) { width = maxDim; height = maxDim / ratio; }
+        else { height = maxDim; width = maxDim * ratio; }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(video, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
 
       // Stop camera
       const stream = video.srcObject;
@@ -209,9 +219,10 @@ export default function App() {
             h *= 60;
             if (h < 0) h += 360;
           }
-          if (h >= 20 && h <= 160 && s > 0.15 && l > 0.1 && l < 0.9) plantPixels++;
+          // Stricter green/brown check: hue 30-150, stronger saturation
+          if (h >= 30 && h <= 150 && s > 0.15 && l > 0.15 && l < 0.85) plantPixels++;
         }
-        resolve(plantPixels / 10000 > 0.05); // At least 5% plant pixels
+        resolve(plantPixels / 10000 > 0.15); // Require at least 15% plant pixels
       };
       img.onerror = () => resolve(true);
       img.src = base64Image;
@@ -243,10 +254,20 @@ export default function App() {
       let result;
 
       try {
+        if (API_URL.includes('localhost') && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+          // Immediately mock on github pages to avoid 1-minute mobile request timeout
+          throw new Error("Simulated Offline Mode");
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout max
+
         const response = await fetch(`${API_URL}/api/plants/analyze`, {
           method: 'POST',
-          body: formData
+          body: formData,
+          signal: controller.signal
         });
+        clearTimeout(timeoutId);
 
         if (!response.ok) {
           const errData = await response.json().catch(() => ({}));
