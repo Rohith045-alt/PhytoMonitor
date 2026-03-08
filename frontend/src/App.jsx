@@ -72,7 +72,7 @@ export default function App() {
   // Translations
   const t = {
     en: {
-      title: "Phytomonitor",
+      title: "PhytoMonitor",
       tagline: "Smart AI for Early Plant Disease Detection",
       upload: "Upload Image",
       camera: "Capture Photo",
@@ -182,11 +182,53 @@ export default function App() {
 
   // --- AI Logic (Integrated Gemini for "Production" feel) ---
 
+  const analyzeLeafPresence = async (base64Image) => {
+    return new Promise((resolve) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 100;
+        canvas.height = 100;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, 100, 100);
+        const data = ctx.getImageData(0, 0, 100, 100).data;
+        let plantPixels = 0;
+
+        for (let i = 0; i < data.length; i += 4) {
+          let r = data[i] / 255, g = data[i + 1] / 255, b = data[i + 2] / 255;
+          let max = Math.max(r, g, b), min = Math.min(r, g, b);
+          let h = 0, s = 0, l = (max + min) / 2;
+          if (max !== min) {
+            let d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+              case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+              case g: h = (b - r) / d + 2; break;
+              case b: h = (r - g) / d + 4; break;
+            }
+            h *= 60;
+            if (h < 0) h += 360;
+          }
+          if (h >= 20 && h <= 160 && s > 0.15 && l > 0.1 && l < 0.9) plantPixels++;
+        }
+        resolve(plantPixels / 10000 > 0.05); // At least 5% plant pixels
+      };
+      img.onerror = () => resolve(true);
+      img.src = base64Image;
+    });
+  };
+
   const processImage = async (base64Image) => {
     setView('processing');
     setError(null);
 
     try {
+      // Check if it's actually a leaf first
+      const isLeaf = await analyzeLeafPresence(base64Image);
+      if (!isLeaf) {
+        throw new Error("Please upload a leaf image");
+      }
+
       // Simulate real-world delay for UI/UX
       await new Promise(r => setTimeout(r, 1500));
 
@@ -241,7 +283,7 @@ export default function App() {
       saveToHistory(predictionResult);
       setView('result');
     } catch (err) {
-      setError("Analysis failed. Please try a clearer photo.");
+      setError(err.message === "Please upload a leaf image" ? err.message : "Analysis failed. Please try a clearer photo.");
       setView('home');
     }
   };
@@ -373,7 +415,19 @@ export default function App() {
 
             <div className="flex gap-2">
               <Button variant="secondary" className="flex-1 py-2" icon={Download} onClick={() => window.print()}>Save PDF</Button>
-              <Button variant="secondary" className="px-4" icon={Share2}></Button>
+              <Button variant="secondary" className="px-4" icon={Share2} onClick={async () => {
+                if (navigator.share) {
+                  try {
+                    await navigator.share({
+                      title: 'PhytoMonitor Analysis',
+                      text: `My plant was diagnosed with ${prediction.disease} (${prediction.confidence}% confidence)!`,
+                      url: window.location.href
+                    });
+                  } catch (e) { }
+                } else {
+                  alert("Share feature is not supported on this browser.");
+                }
+              }}></Button>
             </div>
           </div>
 
@@ -477,9 +531,9 @@ export default function App() {
       <nav className="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView('home')}>
-            <img src="/download.png" alt="Phytomonitor Logo" className="h-8 w-8 object-contain rounded-lg" />
+            <img src="/download.png" alt="PhytoMonitor Logo" className="h-8 w-8 object-contain rounded-lg" />
             <span className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
-              Phyto<span className="text-emerald-600">monitor</span>
+              Phyto<span className="text-emerald-600">Monitor</span>
             </span>
           </div>
 
@@ -561,7 +615,7 @@ export default function App() {
       {/* Footer */}
       <footer className="py-8 text-center border-t border-slate-200 dark:border-slate-800">
         <p className="text-slate-400 text-xs">
-          Powered by AgriTech AI • © 2025 Phytomonitor
+          Powered by AgriTech AI • © 2025 PhytoMonitor
         </p>
       </footer>
 
