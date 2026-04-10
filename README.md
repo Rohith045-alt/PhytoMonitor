@@ -103,7 +103,7 @@ npm install
 
 ---
 
-## ▶ Running the Project
+## Running the Project
 
 ### Start Backend
 
