@@ -192,75 +192,44 @@ export default function App() {
 
   // --- AI Logic (Integrated Gemini for "Production" feel) ---
 
-  const analyzeLeafPresence = async (base64Image) => {
-    return new Promise((resolve) => {
-      const img = new window.Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 100;
-        canvas.height = 100;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, 100, 100);
-        const data = ctx.getImageData(0, 0, 100, 100).data;
-        let plantPixels = 0;
-
-        for (let i = 0; i < data.length; i += 4) {
-          let r = data[i] / 255, g = data[i + 1] / 255, b = data[i + 2] / 255;
-          let max = Math.max(r, g, b), min = Math.min(r, g, b);
-          let h = 0, s = 0, l = (max + min) / 2;
-          if (max !== min) {
-            let d = max - min;
-            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-            switch (max) {
-              case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-              case g: h = (b - r) / d + 2; break;
-              case b: h = (r - g) / d + 4; break;
-            }
-            h *= 60;
-            if (h < 0) h += 360;
-          }
-          // Stricter green/brown check: hue 30-150, stronger saturation
-          if (h >= 30 && h <= 150 && s > 0.15 && l > 0.15 && l < 0.85) plantPixels++;
-        }
-        resolve(plantPixels / 10000 > 0.15); // Require at least 15% plant pixels
-      };
-      img.onerror = () => resolve(true);
-      img.src = base64Image;
-    });
-  };
+  // Leaf detection removed to prevent falsely rejecting images
 
   const processImage = async (base64Image) => {
     setView('processing');
     setError(null);
 
     try {
-      // Check if it's actually a leaf first
-      const isLeaf = await analyzeLeafPresence(base64Image);
-      if (!isLeaf) {
-        throw new Error("Please upload a leaf image");
-      }
+      // Removed initial strict leaf checks that falsely triggered errors.
 
       // Simulate real-world delay for UI/UX
       await new Promise(r => setTimeout(r, 1500));
 
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      // Use relative path to utilize the Vite proxy and work on any global network/tunnel
+      const API_URL = import.meta.env.VITE_API_URL || '';
       const formData = new FormData();
 
-      const res = await fetch(base64Image);
-      const blob = await res.blob();
-      const file = new File([blob], "image.jpg", { type: "image/jpeg" });
+      // Robust base64 to File conversion
+      const byteString = atob(base64Image.split(',')[1]);
+      const mimeString = base64Image.split(',')[0].split(':')[1].split(';')[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      const blob = new Blob([ab], { type: mimeString });
+      const file = new File([blob], "image.jpg", { type: mimeString });
       formData.append("image", file);
 
       let result;
 
       try {
-        if (API_URL.includes('localhost') && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        if (typeof window !== "undefined" && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && !window.location.hostname.match(/^[0-9.]+$/) && !window.location.hostname.includes('loca.lt')) {
           // Immediately mock on github pages to avoid 1-minute mobile request timeout
           throw new Error("Simulated Offline Mode");
         }
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout max
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout max (Better for python model loads)
 
         const response = await fetch(`${API_URL}/api/plants/analyze`, {
           method: 'POST',

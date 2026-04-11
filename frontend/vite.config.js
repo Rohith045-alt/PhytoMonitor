@@ -6,4 +6,10 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   base: '/PhytoMonitor/',
   plugins: [react(), tailwindcss()],
+  server: {
+    host: true, // Listens on 0.0.0.0 to allow access from local network
+    proxy: {
+      '/api': 'http://localhost:5000' // Proxy all API requests to the backend
+    }
+  }
 })
