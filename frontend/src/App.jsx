@@ -119,9 +119,17 @@ export default function App() {
 
   // Save History
   const saveToHistory = (item) => {
-    const newHistory = [item, ...history].slice(0, 20);
+    const newHistory = [item, ...history].slice(0, 10); // keep only 10 items to save space
     setHistory(newHistory);
-    localStorage.setItem(`${APP_ID}_history`, JSON.stringify(newHistory));
+    try {
+      localStorage.setItem(`${APP_ID}_history`, JSON.stringify(newHistory));
+    } catch (e) {
+      // LocalStorage is likely full (QuotaExceeded)
+      console.warn("LocalStorage full! Clearing history automatically.");
+      localStorage.removeItem(`${APP_ID}_history`);
+      localStorage.setItem(`${APP_ID}_history`, JSON.stringify([item]));
+      setHistory([item]);
+    }
   };
 
   // --- Image Handling ---
@@ -273,7 +281,10 @@ export default function App() {
       saveToHistory(predictionResult);
       setView('result');
     } catch (err) {
-      setError(err.message === "Please upload a leaf image" ? err.message : "Analysis failed. Please try a clearer photo.");
+      console.error("ANALYSIS ERROR DUMP:", err);
+      // Give the exact error message instead of unconditionally defaulting to the photo error
+      const msg = err.message || "Unknown error";
+      setError(msg.includes("Simulated") || msg.includes("Failed to execute") ? "Analysis failed due to browser storage limits." : "Analysis failed (" + msg + "). Please try a clearer photo or check servers.");
       setView('home');
     }
   };
