@@ -28,30 +28,6 @@ Frontend → Backend API → ML Bridge → Python Model → Prediction → Front
 
 ---
 
-## Project Structure
-
-phyto/
-│
-├── frontend/
-│
-├── backend/
-│   ├── controllers/
-│   │   └── plantController.js
-│   │
-│   ├── helper/
-│   │   └── mlBridge.js
-│   │
-│   ├── ml_models/
-│   │   ├── predict.py
-│   │   └── my_plant_disease_model.h5
-│   │
-│   ├── server.js
-│   └── package.json
-│
-└── README.md
-
----
-
 ## Technologies Used
 
 Frontend
@@ -165,6 +141,6 @@ Rohith William G
 
 ---
 
-## 📄 License
+## License
 
 This project is for educational purposes.
