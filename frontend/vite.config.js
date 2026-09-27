@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/PhytoMonitor/',
+  base: './',
   plugins: [react(), tailwindcss()],
   server: {
     host: true, // Listens on 0.0.0.0 to allow access from local network
@@ -13,3 +13,4 @@ export default defineConfig({
     }
   }
 })
+

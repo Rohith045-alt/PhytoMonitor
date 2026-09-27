@@ -5,3 +5,9 @@ __pycache__/
 .env
 Plant_desease/
 .DS_Store
+test_*.js
+test_*.py
+test_out.txt
+dummy.jpg
+*.pdf
+
